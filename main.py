@@ -44,26 +44,31 @@ with col2:
         image = Image.open(uploaded_file)
         st.image(image, use_container_width=True)
         
-        if st.button('計算を実行する'):
+      if st.button('計算を実行する'):
             with st.spinner('判定中...'):
-                candidate_labels = ["sweet potato", "chicken breast", "broccoli", "onion", "chocolate", "apple"]
+                # ここから下の行の「左側のスペース」をすべて揃えます
+                candidate_labels = [
+                    "sweet potato", "chicken breast", "broccoli", "onion", 
+                    "chocolate", "apple", "avocado", "yogurt", "salmon", 
+                    "pumpkin", "egg"
+                ]
                 res = detector(image, candidate_labels=candidate_labels)
                 top_label = res[0]['label']
                 
-              food_info = {
+                food_info = {
                     "sweet potato": {"name": "さつまいも", "kcal": 130, "icon": "🍠"},
                     "chicken breast": {"name": "ささみ", "kcal": 105, "icon": "🍗"},
                     "broccoli": {"name": "ブロッコリー", "kcal": 35, "icon": "🥦"},
                     "apple": {"name": "りんご", "kcal": 50, "icon": "🍎"},
                     "onion": {"name": "たまねぎ", "safe": False},
                     "chocolate": {"name": "チョコ", "safe": False},
-                    # --- 追加食材 ---
-                    "avocado": {"name": "アボカド", "safe": False}, # 犬には中毒の危険があるため
+                    "avocado": {"name": "アボカド", "safe": False},
                     "yogurt": {"name": "ヨーグルト(無糖)", "kcal": 67, "icon": "🥛"},
                     "salmon": {"name": "鮭(焼)", "kcal": 180, "icon": "🐟"},
                     "pumpkin": {"name": "かぼちゃ", "kcal": 90, "icon": "🎃"},
                     "egg": {"name": "たまご(ゆで)", "kcal": 150, "icon": "🥚"}
                 }
+
                 if top_label in food_info:
                     info = food_info[top_label]
                     if info.get("safe", True):
