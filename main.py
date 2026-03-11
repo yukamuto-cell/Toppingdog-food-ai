@@ -44,3 +44,4 @@ if uploaded_file is not None:
             elif top_label in kcal_db:
                 max_grams = (daily_limit_kcal / kcal_db[top_label]) * 100
                 st.info(f"💡 体重{dog_weight}kgの場合、1日最大 {max_grams:.1f}g までが目安です。")
+                
