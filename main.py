@@ -30,7 +30,7 @@ with col1:
     st.subheader("📋 1. 設定")
     dog_weight = st.number_input("ワンちゃんの体重(kg)", min_value=0.1, value=5.0, step=0.1)
     
-    # 【新機能】フードのカロリー入力
+    # フードのカロリー入力
     food_kcal_per_100g = st.number_input("フードのカロリー (100gあたり/kcal)", min_value=100, max_value=600, value=350)
     # 1gあたりのカロリーを算出
     food_kcal_per_g = food_kcal_per_100g / 100
@@ -44,9 +44,9 @@ with col2:
         image = Image.open(uploaded_file)
         st.image(image, use_container_width=True)
         
-      if st.button('計算を実行する'):
+        # ここから下のインデント（スペース）を修正しました
+        if st.button('計算を実行する'):
             with st.spinner('判定中...'):
-                # ここから下の行の「左側のスペース」をすべて揃えます
                 candidate_labels = [
                     "sweet potato", "chicken breast", "broccoli", "onion", 
                     "chocolate", "apple", "avocado", "yogurt", "salmon", 
