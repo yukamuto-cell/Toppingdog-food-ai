@@ -53,7 +53,10 @@ with col2:
                     "pumpkin", "egg"
                 ]
                 res = detector(image, candidate_labels=candidate_labels)
-                top_label = res[0]['label']
+                
+                # 上位2つの候補を取得
+                top1 = res[0]
+                top2 = res[1]
                 
                 food_info = {
                     "sweet potato": {"name": "さつまいも", "kcal": 130, "icon": "🍠"},
@@ -69,33 +72,41 @@ with col2:
                     "egg": {"name": "たまご(ゆで)", "kcal": 150, "icon": "🥚"}
                 }
 
-                if top_label in food_info:
-                    info = food_info[top_label]
-                    if info.get("safe", True):
-                        # トッピングの合計kcal
-                        input_kcal = (use_grams / 100) * info["kcal"]
-                        # 目標上限値
-                        daily_limit_kcal = dog_weight * 70 * 0.1
-                        
-                        # 【重要】設定されたフードのカロリーで計算
-                        reduce_food = input_kcal / food_kcal_per_g
-                        
-                        st.success(f"判定：{info['icon']} {info['name']}")
-                        
-                        # 結果表示
-                        st.write(f"📊 **{info['name']} {use_grams}g** は **{input_kcal:.1f} kcal** です。")
-                        
-                        # 判定メッセージ
-                        if input_kcal > daily_limit_kcal:
-                            st.warning(f"⚠️ 少し多めです（目安は {daily_limit_kcal:.1f}kcal まで）")
-                        else:
-                            st.info("✅ 1日のトッピング制限内です。")
-                        
-                        # 最終的なアドバイス
-                        st.divider()
-                        st.subheader(f"🥣 調整量： **約 {reduce_food:.1f}g**")
-                        st.write(f"普段のフード（{food_kcal_per_100g}kcal/100g）をこの分だけ減らしてください。")
+                # セッション状態で現在の選択を管理（初期値は1位）
+                if 'selected_label' not in st.session_state:
+                    st.session_state.selected_label = top1['label']
+
+                # --- 候補選択ボタンの表示 ---
+                st.write("🧐 AIの予想（違っていたら選んでください）:")
+                c1, c2 = st.columns(2)
+                with c1:
+                    name1 = food_info[top1['label']]['name']
+                    if st.button(f"1位: {name1} ({top1['score']:.1%})"):
+                        st.session_state.selected_label = top1['label']
+                with c2:
+                    name2 = food_info[top2['label']]['name']
+                    if st.button(f"2位: {name2} ({top2['score']:.1%})"):
+                        st.session_state.selected_label = top2['label']
+
+                # 選択されたラベルで計算を実行
+                current_label = st.session_state.selected_label
+                info = food_info[current_label]
+
+                st.divider()
+                
+                   if info.get("safe", True):
+                    input_kcal = (use_grams / 100) * info["kcal"]
+                    daily_limit_kcal = dog_weight * 70 * 0.1
+                    reduce_food = input_kcal / food_kcal_per_g
+                    
+                    st.success(f"判定中：{info['icon']} {info['name']}")
+                    st.write(f"📊 **{info['name']} {use_grams}g** は **{input_kcal:.1f} kcal** です。")
+                    
+                    if input_kcal > daily_limit_kcal:
+                        st.warning(f"⚠️ 少し多めです（目安は {daily_limit_kcal:.1f}kcal まで）")
                     else:
-                        st.error(f"🚨 警告：{info['name']}は危険です！")
-    else:
-        st.write("写真をアップロードしてください。")
+                        st.info("✅ 1日のトッピング制限内です。")
+                    
+                    st.subheader(f"🥣 調整量： **約 {reduce_food:.1f}g**")
+                else:
+                    st.error(f"🚨 警告：{info['name']}は危険です！")
