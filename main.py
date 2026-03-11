@@ -44,7 +44,6 @@ with col2:
         image = Image.open(uploaded_file)
         st.image(image, use_container_width=True)
         
-        # ここから下のインデント（スペース）を修正しました
         if st.button('計算を実行する'):
             with st.spinner('判定中...'):
                 candidate_labels = [
@@ -94,12 +93,13 @@ with col2:
 
                 st.divider()
                 
-                   if info.get("safe", True):
+                # --- ここから下の判定・計算ブロックのインデントをすべて整えました ---
+                if info.get("safe", True):
                     input_kcal = (use_grams / 100) * info["kcal"]
                     daily_limit_kcal = dog_weight * 70 * 0.1
                     reduce_food = input_kcal / food_kcal_per_g
                     
-                    st.success(f"判定中：{info['icon']} {info['name']}")
+                    st.success(f"判定結果：{info['icon']} {info['name']}")
                     st.write(f"📊 **{info['name']} {use_grams}g** は **{input_kcal:.1f} kcal** です。")
                     
                     if input_kcal > daily_limit_kcal:
@@ -108,5 +108,8 @@ with col2:
                         st.info("✅ 1日のトッピング制限内です。")
                     
                     st.subheader(f"🥣 調整量： **約 {reduce_food:.1f}g**")
+                    st.write("ドッグフードをこの分だけ減らしましょう。")
                 else:
                     st.error(f"🚨 警告：{info['name']}は危険です！")
+    else:
+        st.write("写真をアップロードしてください。")
