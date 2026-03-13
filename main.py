@@ -116,11 +116,14 @@ with col2:
             
             st.metric(f"{info['name']} {use_grams}g", f"{input_kcal:.1f} kcal")
             
-            if calc_mode == "トッピング(食材・一般食)":
+           if calc_mode == "トッピング(食材・一般食)":
                 if input_kcal > daily_limit_kcal:
                     st.warning(f"⚠️ 制限目安：{daily_limit_kcal:.1f}kcal を超えています")
                 else:
                     st.info("✅ 1日のトッピング制限内です")
+                
+                # どちらの結果であっても、最後に小さく補足を表示
+                st.caption("【ガイド】トッピングは栄養バランスを保つため、1日の食事の10%までに留めましょう。")
             else:
                 st.info("🥗 総合栄養食モード：栄養バランスは維持されます")
             
