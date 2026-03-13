@@ -13,7 +13,6 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 st.title("🐶 愛犬ごはん調整チェッカー")
-st.write("モードに合わせて最適な入力方法に切り替わります。")
 
 # 2. AIモデル準備
 @st.cache_resource
@@ -49,7 +48,6 @@ with col1:
     
     st.divider()
     
-    # モード選択
     calc_mode = st.radio(
         "ごはんの種類",
         ["トッピング(食材・一般食)", "総合栄養食(缶詰・パウチ等)"]
@@ -57,7 +55,7 @@ with col1:
     
     use_grams = st.number_input("今回の分量(g)", min_value=1, value=20, step=1)
     
-    # モードによって入力方法のデフォルトを切り替える
+    # 選択肢の初期値をモードに連動
     default_index = 0 if calc_mode == "トッピング(食材・一般食)" else 1
     input_method = st.radio("入力方法", ["画像で判定", "カロリーを手入力"], index=default_index)
     
@@ -74,11 +72,15 @@ with col2:
     st.subheader("🔍 2. 判定と結果")
     selected_label = None
     
+    # 【新機能】総合栄養食モードで画像判定を選んでいる場合のアナウンス
+    if calc_mode == "総合栄養食(缶詰・パウチ等)" and input_method == "画像で判定":
+        st.warning("💡 総合栄養食（缶詰やパウチ）をお使いですね！")
+        st.info("製品ごとにカロリーが異なるため、左のメニューで「カロリーを手入力」に切り替えて、パッケージ裏の数値を入力するのが正確でおすすめです。")
+        
     if input_method == "画像で判定" and uploaded_file is not None:
         image = Image.open(uploaded_file)
         st.image(image, use_container_width=True)
         
-        # セッション管理でAI判定を1回に限定
         if 'last_file' not in st.session_state or st.session_state.last_file != uploaded_file.name:
             st.session_state.last_file = uploaded_file.name
             with st.spinner('判定中...'):
@@ -100,7 +102,7 @@ with col2:
     elif input_method == "カロリーを手入力":
         selected_label = "custom"
         food_info["custom"]["kcal"] = custom_kcal
-        st.info("✅ 数値入力モード")
+        st.success("✅ 数値入力モード")
 
     # --- 5. 計算結果の表示 ---
     if selected_label:
@@ -120,7 +122,7 @@ with col2:
                 else:
                     st.info("✅ 1日のトッピング制限内です")
             else:
-                st.info("🥗 総合栄養食同士の調整です")
+                st.info("🥗 総合栄養食モード：栄養バランスは維持されます")
             
             st.subheader(f"🥣 メインを減らす量： 約 {reduce_food:.1f} g")
         else:
