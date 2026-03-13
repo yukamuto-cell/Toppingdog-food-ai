@@ -1,9 +1,3 @@
-コピペは範囲が広いと少しのズレでエラーになりやすいですよね。
-
-「応用編」として、「10%制限内」のときも「オーバー」のときも、優しく理由を添えてくれるガイド機能を盛り込んだ完全版コードを作成しました。
-
-これを丸ごとコピーして、GitHubの main.py に上書きしてください。
-
 Python
 import streamlit as st
 from transformers import pipeline
