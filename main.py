@@ -1,3 +1,10 @@
+コピペは範囲が広いと少しのズレでエラーになりやすいですよね。
+
+「応用編」として、「10%制限内」のときも「オーバー」のときも、優しく理由を添えてくれるガイド機能を盛り込んだ完全版コードを作成しました。
+
+これを丸ごとコピーして、GitHubの main.py に上書きしてください。
+
+Python
 import streamlit as st
 from transformers import pipeline
 from PIL import Image
@@ -5,10 +12,12 @@ from PIL import Image
 # 1. ページ設定
 st.set_page_config(page_title="DogFood AI Plus", page_icon="🐶", layout="centered")
 
+# デザイン調整
 st.markdown("""
     <style>
     .stButton>button { border-radius: 20px; background-color: #ff4b4b; color: white; font-weight: bold; width: 100%; }
     .stRadio > label { font-weight: bold; padding-bottom: 10px; }
+    .stCaption { line-height: 1.2; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -55,7 +64,7 @@ with col1:
     
     use_grams = st.number_input("今回の分量(g)", min_value=1, value=20, step=1)
     
-    # 選択肢の初期値をモードに連動
+    # モードに連動したデフォルト設定
     default_index = 0 if calc_mode == "トッピング(食材・一般食)" else 1
     input_method = st.radio("入力方法", ["画像で判定", "カロリーを手入力"], index=default_index)
     
@@ -72,10 +81,10 @@ with col2:
     st.subheader("🔍 2. 判定と結果")
     selected_label = None
     
-    # 【新機能】総合栄養食モードで画像判定を選んでいる場合のアナウンス
+    # 総合栄養食モードでの画像判定に対するガイド
     if calc_mode == "総合栄養食(缶詰・パウチ等)" and input_method == "画像で判定":
-        st.warning("💡 総合栄養食（缶詰やパウチ）をお使いですね！")
-        st.info("製品ごとにカロリーが異なるため、左のメニューで「カロリーを手入力」に切り替えて、パッケージ裏の数値を入力するのが正確でおすすめです。")
+        st.warning("💡 総合栄養食をお使いですね！")
+        st.info("製品ごとの正確な数値を出すため、左メニューで「カロリーを手入力」に切り替えるのがおすすめです。")
         
     if input_method == "画像で判定" and uploaded_file is not None:
         image = Image.open(uploaded_file)
@@ -116,19 +125,20 @@ with col2:
             
             st.metric(f"{info['name']} {use_grams}g", f"{input_kcal:.1f} kcal")
             
-           if calc_mode == "トッピング(食材・一般食)":
+            if calc_mode == "トッピング(食材・一般食)":
                 if input_kcal > daily_limit_kcal:
                     st.warning(f"⚠️ 制限目安：{daily_limit_kcal:.1f}kcal を超えています")
                 else:
                     st.info("✅ 1日のトッピング制限内です")
                 
-                # どちらの結果であっても、最後に小さく補足を表示
-                st.caption("【ガイド】トッピングは栄養バランスを保つため、1日の食事の10%までに留めましょう。")
+                # 常時表示される補足ガイド
+                st.caption("【ガイド】トッピングや間食は、栄養バランスを保つため1日の総摂取カロリーの10%以内に収めるのが理想的です。")
             else:
-                st.info("🥗 総合栄養食モード：栄養バランスは維持されます")
+                st.info("🥗 総合栄養食モード：制限を気にせず調整できます")
             
             st.subheader(f"🥣 メインを減らす量： 約 {reduce_food:.1f} g")
+            st.write(f"メインフードをこの分だけ減らして調整しましょう。")
         else:
             st.error(f"🚨 警告：{info['name']}は危険です！")
     else:
-        st.write("設定を完了してください。")
+        st.write("左側の設定を完了すると結果が表示されます。")
