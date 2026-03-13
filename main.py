@@ -13,7 +13,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 st.title("🐶 愛犬ごはん調整チェッカー")
-st.write("食材・一般食から総合栄養食まで、これ一台で計算。")
+st.write("モードに合わせて最適な入力方法に切り替わります。")
 
 # 2. AIモデル準備
 @st.cache_resource
@@ -44,39 +44,41 @@ col1, col2 = st.columns([1, 1])
 with col1:
     st.subheader("📋 1. 設定")
     dog_weight = st.number_input("ワンちゃんの体重(kg)", min_value=0.1, value=5.0, step=0.1)
-    food_kcal_per_100g = st.number_input("普段のメインフード (100gあたりkcal)", min_value=100, max_value=600, value=350)
+    food_kcal_per_100g = st.number_input("メインフードのカロリー(100g/kcal)", min_value=100, value=350)
     food_kcal_per_g = food_kcal_per_100g / 100
     
     st.divider()
     
     # モード選択
     calc_mode = st.radio(
-        "トッピングの種類",
+        "ごはんの種類",
         ["トッピング(食材・一般食)", "総合栄養食(缶詰・パウチ等)"]
     )
     
-    use_grams = st.number_input("与えたい分量(g)", min_value=1, value=10, step=1)
+    use_grams = st.number_input("今回の分量(g)", min_value=1, value=20, step=1)
     
-    # 入力方法の選択
-    input_method = st.radio("入力方法", ["画像で判定", "カロリーを手入力"])
+    # モードによって入力方法のデフォルトを切り替える
+    default_index = 0 if calc_mode == "トッピング(食材・一般食)" else 1
+    input_method = st.radio("入力方法", ["画像で判定", "カロリーを手入力"], index=default_index)
     
     custom_kcal = 0
     uploaded_file = None
+    
     if input_method == "画像で判定":
-        uploaded_file = st.file_uploader("食材をアップロード", type=["jpg", "jpeg", "png"])
+        uploaded_file = st.file_uploader("写真をアップロード", type=["jpg", "jpeg", "png"])
     else:
-        custom_kcal = st.number_input("100gあたりのカロリー(kcal)", min_value=1, value=100)
+        custom_kcal = st.number_input("製品のカロリー(100g/kcal)", min_value=1, value=100)
 
 # --- 4. 判定・結果エリア ---
 with col2:
     st.subheader("🔍 2. 判定と結果")
-    
     selected_label = None
     
     if input_method == "画像で判定" and uploaded_file is not None:
         image = Image.open(uploaded_file)
         st.image(image, use_container_width=True)
         
+        # セッション管理でAI判定を1回に限定
         if 'last_file' not in st.session_state or st.session_state.last_file != uploaded_file.name:
             st.session_state.last_file = uploaded_file.name
             with st.spinner('判定中...'):
@@ -96,9 +98,9 @@ with col2:
                 selected_label = st.radio("正しい食材を選択:", options, format_func=lambda x: option_display[x])
                 
     elif input_method == "カロリーを手入力":
-        st.info("💡 市販品の数値を入力中")
         selected_label = "custom"
         food_info["custom"]["kcal"] = custom_kcal
+        st.info("✅ 数値入力モード")
 
     # --- 5. 計算結果の表示 ---
     if selected_label:
@@ -110,19 +112,18 @@ with col2:
             daily_limit_kcal = dog_weight * 70 * 0.1
             reduce_food = input_kcal / food_kcal_per_g
             
-            st.metric(f"{info['name']} {use_grams}g の熱量", f"{input_kcal:.1f} kcal")
+            st.metric(f"{info['name']} {use_grams}g", f"{input_kcal:.1f} kcal")
             
             if calc_mode == "トッピング(食材・一般食)":
                 if input_kcal > daily_limit_kcal:
-                    st.warning(f"⚠️ 制限(10%)目安：{daily_limit_kcal:.1f}kcal を超えています")
+                    st.warning(f"⚠️ 制限目安：{daily_limit_kcal:.1f}kcal を超えています")
                 else:
                     st.info("✅ 1日のトッピング制限内です")
             else:
-                st.info("🥗 総合栄養食モード：制限を気にせず調整できます")
+                st.info("🥗 総合栄養食同士の調整です")
             
-            st.subheader(f"🥣 フード調整量： 約 {reduce_food:.1f} g")
-            st.write(f"メインフードをこの分だけ減らしてください。")
+            st.subheader(f"🥣 メインを減らす量： 約 {reduce_food:.1f} g")
         else:
             st.error(f"🚨 警告：{info['name']}は危険です！")
     else:
-        st.write("設定を完了すると結果が表示されます。")
+        st.write("設定を完了してください。")
